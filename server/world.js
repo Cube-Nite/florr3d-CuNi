@@ -101,6 +101,11 @@ export class World {
         const { row, i, key } = msg;
         if ((row !== 'primary' && row !== 'secondary') || !Number.isInteger(i) || i < 0 || i >= SLOTS) return;
         if (typeof key !== 'string') return;
+        // dragging/selecting a petal identical (type+rarity) to the one
+        // already in that slot is a no-op — don't touch inventory or
+        // force the slot's live instance to discard and reload in
+        const [type, rarityStr] = key.split(':');
+        if (player.petals.sameAsSlot(row, i, { type, rarity: Number(rarityStr) })) return;
         const item = player.takeFromInventory(key);
         if (!item || !PETAL_TYPES[item.type] || !RARITIES[item.rarity]) return;
         const old = player.petals.equip(row, i, item);

@@ -58,14 +58,33 @@ export class PetalManager {
     this.player.toast(`Rotation ${Math.round(this.rotFactor * 100)}%`);
   }
 
+  // true if `item` (a {type, rarity} pair, or null) is functionally
+  // identical to whatever already sits in row/i — used so swapping a slot
+  // with its own duplicate (same type+rarity) is a no-op instead of
+  // discarding a live petal to force an identical one to reload in
+  sameAsSlot(row, i, item) {
+    const slot = (row === 'primary' ? this.primary : this.secondary)[i];
+    return !!slot && !!item && slot.type === item.type && slot.rarity === item.rarity;
+  }
+
   swapSlot(i) {
+    if (this.sameAsSlot('primary', i, this.secondary[i])) return; // identical both sides — nothing to do
     [this.primary[i], this.secondary[i]] = [this.secondary[i], this.primary[i]];
     this.replaceSlot(i);
   }
 
   swapRows() {
-    [this.primary, this.secondary] = [this.secondary, this.primary];
-    this.rebuildAll(false);
+    // per-slot: pairs holding an identical petal on both sides are left
+    // alone (their live instance keeps its hp/cooldown/id untouched) —
+    // only genuinely different slots swap and reload in
+    const changed = new Set();
+    for (let i = 0; i < this.primary.length; i++) {
+      if (this.sameAsSlot('primary', i, this.secondary[i])) continue;
+      [this.primary[i], this.secondary[i]] = [this.secondary[i], this.primary[i]];
+      changed.add(i);
+    }
+    if (changed.size === 0) return;
+    this.rebuildChanged(changed);
   }
 
   equip(row, i, item) {
@@ -119,6 +138,17 @@ export class PetalManager {
   }
 
   replaceSlot(slotIdx) {
+    this.rebuildChanged(new Set([slotIdx]));
+  }
+
+  // rebuild only the slots in `changedIdx` (their old instance is discarded
+  // and the new one reloads in); every other primary slot keeps its
+  // existing instances untouched (only angleFrac is refreshed, since the
+  // total orbit position count can shift). Generalizes the old single-slot
+  // replaceSlot to cover swapRows, where several slots can change in one
+  // atomic pass while slots holding an identical petal on both sides are
+  // meant to stay completely undisturbed.
+  rebuildChanged(changedIdx) {
     const counts = this.primary.map((s) => (s ? PETAL_TYPES[s.type].count : 0));
     const total = counts.reduce((a, b) => a + b, 0);
     if (total === 0) {
@@ -136,7 +166,7 @@ export class PetalManager {
     let posIdx = 0;
     this.primary.forEach((slot, i) => {
       if (!slot) return;
-      if (i === slotIdx) {
+      if (changedIdx.has(i)) {
         rebuilt.push(...this.makeInstances(slot, i, total, posIdx, false));
       } else {
         const existing = bySlot.get(i) || [];

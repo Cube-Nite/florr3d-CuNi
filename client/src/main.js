@@ -180,7 +180,13 @@ Promise.all([
   game.input.on('q', () => game.net.send({ t: 'rotSpeed', delta: -0.175 }));
   game.input.on('e', () => game.net.send({ t: 'rotSpeed', delta: +0.175 }));
   for (let i = 1; i <= 5; i++) {
-    game.input.on(String(i), () => game.net.send({ t: 'swapSlot', i: i - 1 }));
+    // with an inventory petal selected, number keys equip it into that
+    // primary slot instead of the normal row-swap (mirrors clicking the
+    // slot while a petal is selected — see UI.onSlotClick)
+    game.input.on(String(i), () => {
+      if (game.ui.selected) game.ui.equipInto('primary', i - 1, game.ui.selected);
+      else game.net.send({ t: 'swapSlot', i: i - 1 });
+    });
   }
 
   let inputAccum = 0;
