@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { join, normalize, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { attachGameServer } from './ws.js';
-import { handleAuth, parseCookies, sessionFromCookie } from './auth.js';
+import { handleAuth, parseCookies, ensureSession, isDiscordAccount } from './auth.js';
 import { mapPayload } from './map.js';
 import { mintJoinToken } from './jointoken.js';
 import { verifyTurnstile, turnstileConfigured, TURNSTILE_SITE_KEY } from './turnstile.js';
@@ -32,6 +32,7 @@ const server = http.createServer(async (req, res) => {
 
 async function handleRequest(req, res) {
   if (await handleAuth(req, res)) return;
+  const accountId = ensureSession(req, res);
   const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
   if (pathname === '/map.json') {
     if (!mapPayload) { res.writeHead(404); res.end(); return; }
@@ -46,12 +47,12 @@ async function handleRequest(req, res) {
   }
   if (pathname === '/join-token') {
     const ip = clientIp(req);
-    const loggedIn = sessionFromCookie(req.headers.cookie) != null;
-    if (!loggedIn && turnstileConfigured() && !verifyHumanCookie(parseCookies(req.headers.cookie).human, ip)) {
+    const discordLinked = isDiscordAccount(accountId);
+    if (!discordLinked && turnstileConfigured() && !verifyHumanCookie(parseCookies(req.headers.cookie).human, ip)) {
       const url = new URL(req.url, 'http://localhost');
       const ok = await verifyTurnstile(url.searchParams.get('turnstile'), ip);
       if (!ok) { res.writeHead(403, { 'content-type': 'application/json' }); res.end(JSON.stringify({ error: 'human-check-required' })); return; }
-      res.setHeader('Set-Cookie',
+      res.appendHeader('Set-Cookie',
         `human=${makeHumanCookie(ip)}; Path=/; Max-Age=${HUMAN_TTL_MS / 1000}; HttpOnly; Secure; SameSite=Lax`);
     }
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
