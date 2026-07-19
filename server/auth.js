@@ -1,5 +1,5 @@
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
-import { upsertAccount, getAccount } from './db.js';
+import { upsertAccount, upsertGuestAccount, getAccount } from './db.js';
 
 const SESSION_DAYS = 30;
 const secret = process.env.SESSION_SECRET || randomBytes(32).toString('hex');
@@ -40,8 +40,27 @@ export function sessionFromCookie(cookieHeader) {
   return verifySession(parseCookies(cookieHeader).sid);
 }
 
-const setSession = (res, token) => res.setHeader('Set-Cookie',
+const setSession = (res, token) => res.appendHeader('Set-Cookie',
   `sid=${token}; Path=/; Max-Age=${SESSION_DAYS * 86400}; HttpOnly; Secure; SameSite=Lax`);
+
+// Guarantees the request has a valid, saved account — Discord-linked or
+// not — and makes sure the response carries a session cookie for it.
+// Call this early (before the player ever reaches the game socket) so
+// that by the time the WebSocket connects, the browser already has the
+// cookie and progress can be loaded/saved right away, on any domain.
+export function ensureSession(req, res) {
+  const existing = sessionFromCookie(req.headers.cookie);
+  if (existing != null && getAccount(existing)) return existing;
+  const guestId = randomBytes(12).toString('hex');
+  const account = upsertGuestAccount({ guestId, username: `Guest${guestId.slice(0, 4)}` });
+  setSession(res, makeSession(account.id));
+  return account.id;
+}
+
+export function isDiscordAccount(accountId) {
+  const account = accountId != null ? getAccount(accountId) : null;
+  return account?.discordId != null;
+}
 
 const redirect = (res, to) => { res.writeHead(302, { location: to }); res.end(); };
 const json = (res, obj) => {
@@ -104,7 +123,7 @@ export async function handleAuth(req, res) {
     case '/auth/me': {
       const accountId = sessionFromCookie(req.headers.cookie);
       const account = accountId != null ? getAccount(accountId) : null;
-      json(res, account
+      json(res, account?.discordId != null
         ? { loggedIn: true, username: account.username, avatar: account.avatar }
         : { loggedIn: false });
       return true;
