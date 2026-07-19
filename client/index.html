@@ -179,6 +179,36 @@
     #loginnudge { font-size: 14px; color: #ffe763; text-align: center; line-height: 1.5; }
     #loginnudge.hidden { display: none; }
 
+    /* Guest → Discord save-merge chooser */
+    #mergemodal { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,0.6);
+                  display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .mg-box { background: #2f8f3e; border: 5px solid #237030; border-radius: 16px;
+              padding: 22px 24px; max-width: 720px; width: 100%; box-sizing: border-box;
+              max-height: 92vh; overflow-y: auto; color: #fff; text-align: center; }
+    .mg-title { font-size: 30px; font-weight: 700; }
+    .mg-sub { font-size: 14px; line-height: 1.5; margin: 8px 0 18px; opacity: 0.95; }
+    .mg-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .mg-card { flex: 1 1 260px; min-width: 240px; background: rgba(0,0,0,0.22);
+               border: 3px solid rgba(0,0,0,0.28); border-radius: 12px; padding: 14px;
+               display: flex; flex-direction: column; gap: 12px; }
+    .mg-cardtitle { font-size: 18px; font-weight: 700; word-break: break-word; }
+    .mg-cardmeta { font-size: 13px; opacity: 0.9; margin-top: 2px; }
+    .mg-petals { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
+                 min-height: 46px; align-content: flex-start; }
+    .mg-empty { font-size: 13px; opacity: 0.7; align-self: center; }
+    .mg-tile { position: relative; width: 40px; height: 40px; border-radius: 8px;
+               border: 3px solid; display: flex; align-items: center; justify-content: center; }
+    .mg-icon { width: 26px; height: 26px; }
+    .mg-dot { width: 18px; height: 18px; border-radius: 50%; }
+    .mg-count { position: absolute; right: -3px; bottom: -5px; font-size: 11px; font-weight: 700;
+                color: #fff; text-shadow: 0 0 3px #000, 0 0 3px #000; }
+    .mg-keep { margin-top: auto; font-family: inherit; font-weight: 700; font-size: 15px;
+               color: #fff; background: #74d939; cursor: pointer; border: 4px solid #57a32b;
+               border-radius: 999px; padding: 9px 18px; transition: transform 0.08s; }
+    .mg-keep:hover { transform: scale(1.05); }
+    .mg-keep:active { transform: scale(0.97); }
+    .mg-keep:disabled { opacity: 0.55; cursor: default; transform: none; }
+
     /* chat: hidden pill above the loadout bar, opened with Enter */
     #chatbox { position: absolute; bottom: 158px; left: 50%; transform: translateX(-50%);
                display: none; }
@@ -264,7 +294,7 @@
         <a id="loginbtn" class="hidden" href="/auth/discord">Sign in with Discord</a>
         <span id="authstate" class="stroke"></span>
       </div>
-      <div id="loginnudge" class="stroke hidden">Guest progress is lost when the page reloads.<br />Sign in to keep your petals and level!</div>
+      <div id="loginnudge" class="stroke hidden">Playing as a guest — your progress is saved on this browser.<br />Sign in with Discord to keep it safe and play across devices!</div>
     </div>
     <div id="death">
       <div class="big stroke">You died</div>

@@ -76,6 +76,7 @@ const getStmt = db.prepare(
   'SELECT id, discord_id AS discordId, username, avatar, save FROM accounts WHERE id = ?',
 );
 const saveStmt = db.prepare('UPDATE accounts SET save = ?, last_seen = ? WHERE id = ?');
+const deleteStmt = db.prepare('DELETE FROM accounts WHERE id = ?');
 
 export function upsertAccount({ discordId, username, avatar }) {
   return upsertStmt.get({ discordId, username, avatar, now: Date.now() });
@@ -101,4 +102,10 @@ export function loadSave(id) {
   const row = getStmt.get(id);
   if (!row?.save) return null;
   try { return JSON.parse(row.save); } catch { return null; }
+}
+
+// Permanently removes an account row (used when merging a guest save into a
+// Discord account — the save that isn't kept is deleted for good).
+export function deleteAccount(id) {
+  deleteStmt.run(id);
 }
