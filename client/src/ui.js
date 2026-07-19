@@ -19,7 +19,7 @@ function shade(hex, f = 0.72) {
   return `rgb(${ch(16)}, ${ch(8)}, ${ch(0)})`;
 }
 
-const PETAL_ICONS = {
+export const PETAL_ICONS = {
   basic: basicIcon,
   rockPetal: rockIcon,
   rose: roseIcon,

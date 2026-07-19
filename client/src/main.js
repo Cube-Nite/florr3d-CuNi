@@ -12,6 +12,7 @@ import { setupMobileControls, joyWorldOffset } from './mobile.js';
 import { MOB_TYPES, CHAT_MAX_LEN, NAME_MAX_LEN } from '../../shared/config.js';
 import { initQualityToggle } from './settings.js';
 import { restrictToAscii } from './utils.js';
+import { showMergeModal } from './merge.js';
 
 const INPUT_RATE = 1 / 30;
 
@@ -99,6 +100,22 @@ Promise.all([
   };
   playBtn.addEventListener('click', submitName);
   nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitName(); });
+
+  // Just logged in as a guest who also had Discord progress? The server
+  // parked the decision and redirected with ?merge=1. Fetch both saves and
+  // let the player pick which to keep, then reload so the winner is loaded.
+  if (new URLSearchParams(location.search).has('merge')) {
+    fetch('/auth/merge', { credentials: 'same-origin' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.pending) return showMergeModal(data).then(() => {
+          location.replace(location.pathname);
+        });
+        // Nothing pending (already resolved / expired) — clean the URL.
+        history.replaceState(null, '', location.pathname);
+      })
+      .catch(() => {});
+  }
 
   const loginBtn = document.getElementById('loginbtn');
   const authState = document.getElementById('authstate');
