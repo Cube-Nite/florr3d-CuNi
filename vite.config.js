@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import { attachGameServer } from './server/ws.js';
-import { handleAuth, parseCookies, sessionFromCookie } from './server/auth.js';
+import { handleAuth, parseCookies, ensureSession, isDiscordAccount } from './server/auth.js';
 import { mapPayload } from './server/map.js';
 import { mintJoinToken } from './server/jointoken.js';
 import { verifyTurnstile, turnstileConfigured, TURNSTILE_SITE_KEY } from './server/turnstile.js';
@@ -9,6 +9,10 @@ import { clientIp } from './server/utils.js';
 
 const attachAuth = (server) => server.middlewares.use((req, res, next) => {
   handleAuth(req, res).then((handled) => { if (!handled) next(); }, next);
+});
+const attachSession = (server) => server.middlewares.use((req, res, next) => {
+  ensureSession(req, res);
+  next();
 });
 const attachMap = (server) => server.middlewares.use((req, res, next) => {
   if (new URL(req.url, 'http://localhost').pathname !== '/map.json') return next();
@@ -25,12 +29,13 @@ const attachJoinToken = (server) => server.middlewares.use(async (req, res, next
   }
   if (pathname !== '/join-token') return next();
   const ip = clientIp(req);
-  const loggedIn = sessionFromCookie(req.headers.cookie) != null;
-  if (!loggedIn && turnstileConfigured() && !verifyHumanCookie(parseCookies(req.headers.cookie).human, ip)) {
+  const accountId = ensureSession(req, res);
+  const discordLinked = isDiscordAccount(accountId);
+  if (!discordLinked && turnstileConfigured() && !verifyHumanCookie(parseCookies(req.headers.cookie).human, ip)) {
     const url = new URL(req.url, 'http://localhost');
     const ok = await verifyTurnstile(url.searchParams.get('turnstile'), ip);
     if (!ok) { res.writeHead(403, { 'content-type': 'application/json' }); res.end(JSON.stringify({ error: 'human-check-required' })); return; }
-    res.setHeader('Set-Cookie',
+    res.appendHeader('Set-Cookie',
       `human=${makeHumanCookie(ip)}; Path=/; Max-Age=${HUMAN_TTL_MS / 1000}; HttpOnly; Secure; SameSite=Lax`);
   }
   res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
@@ -38,7 +43,7 @@ const attachJoinToken = (server) => server.middlewares.use(async (req, res, next
 });
 const attach = (server) => {
   process.env.DEV_STARTER_PETALS ??= 'wing:2,wing:2,bubble:2,bubble:2,bubble:2';
-  attachGameServer(server.httpServer); attachAuth(server); attachMap(server); attachJoinToken(server);
+  attachGameServer(server.httpServer); attachAuth(server); attachSession(server); attachMap(server); attachJoinToken(server);
 };
 const gameServerPlugin = {
   name: 'florr3d-game-server',
