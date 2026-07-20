@@ -79,8 +79,14 @@ export const PETAL_TYPES = {
                projectile: { speed: 24, life: 1.8 },
                desc: 'pew pew' },
   glass:     { name: 'Glass',   hp: 3,  dmg: 15, reload: 1.5, radius: 0.4,  count: 1, color: '#eaf6fb',
-               hitCooldown: 1, speedDmgMult: 2,
-               desc: "This one cuts. The faster you go, the more damage is dealt. Can't hit your enemies more than once per second." },
+               hitCooldown: 1,
+               // Damage = dmg * idle * growth^(speed ratio), where the ratio is
+               // your current speed / base walk speed, capped at maxRatio. Tuned
+               // so a plain walk (ratio 1) is fairly weak and only pairing with
+               // Bubble's speed (ratio ~3) reaches the big numbers. For Ultra
+               // (base dmg 960): idle-still ≈ 509, walking ≈ 1220, max ≈ 7030.
+               speedDmg: { idle: 0.53, growth: 2.40, maxRatio: 3.0 },
+               desc: "This one cuts. Damage climbs exponentially with your movement speed — weak at a walk, devastating in flight. Pair with Bubble to hit top speed. Can't hit the same enemy more than once per second." },
   rice:      { name: 'Rice',    hp: 1,  dmg: 1,  reload: 0.5, radius: 0.28, count: 1, color: '#f2f2ec',
                desc: 'Weak, but reloads almost instantly.' },
   corn:      { name: 'Corn',    hp: 200, dmg: 5, reload: 20,  radius: 0.55, count: 1, color: '#ffe419',
@@ -96,19 +102,26 @@ export const PETAL_TYPES = {
 export const FLIGHT = {
   gravity: 18,
   maxFall: 30,
-  glideSink: 2.5,
-  sinkRarityMult: 0.88,
-  boost: 30,
-  boostRarityAdd: 0.18,
+  // Wing glide sink rate = glideSink * sinkRarityMult^rarity. Tuned so a
+  // Common wing barely helps (sinks at 15 ≈ half of maxFall) while Ultra is
+  // unchanged from before (~1.16). Rarities in between scale steeply.
+  glideSink: 15,
+  sinkRarityMult: 0.653,
+  // Bubble launch impulse = boost * boostRarityMult^rarity. Tuned so a Common
+  // bubble is a feeble hop (~6, barely a meter) while Ultra is unchanged from
+  // before (~62.3, still clamped to maxBoostSpeed horizontally).
+  boost: 6,
+  boostRarityMult: 1.477,
   drag: 0.35,
   groundDrag: 6,
   diveRate: 14,
   diveGain: 24,
   climbRate: 18,
   maxBoostSpeed: 40,
-  airControl: 0.55,
+  // In-air keyboard/aim movement is faster than on the ground so flight feels
+  // agile — you can strafe freely mid-glide instead of barely nudging.
+  airControl: 1.3,
   maxAlt: 30,
-  groundPopPitch: 0.9,
   topdownPopPitch: 0.45,
 };
 

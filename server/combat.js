@@ -40,8 +40,10 @@ export function updateCombat(world, dt) {
         if (d < mob.radius + petal.radius) {
           const pdef = PETAL_TYPES[petal.type];
           if (canHit(mob, petal.id, t, pdef.hitCooldown)) {
-            const dmg = pdef.speedDmgMult
-              ? petal.dmg * (1 + Math.min(1, player.moveSpeed / player.speed) * pdef.speedDmgMult)
+            const sd = pdef.speedDmg;
+            const dmg = sd
+              ? petal.dmg * sd.idle
+                * sd.growth ** Math.min(sd.maxRatio, player.moveSpeed / player.speed)
               : petal.dmg;
             mob.damage(dmg, petal.pos, player);
             petal.hp -= mob.dmg;
