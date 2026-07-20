@@ -13,7 +13,7 @@ export function groundYAt(player) {
   return player.pos.y >= top - 0.01 ? top : 0;
 }
 
-function popBubble(player, bubble, airborne) {
+function popBubble(player, bubble) {
   const input = player.input;
   let yawX, yawZ;
   if (input.fps) {
@@ -25,10 +25,14 @@ function popBubble(player, bubble, airborne) {
     if (len > 0.5) { yawX = dx / len; yawZ = dz / len; }
     else { yawX = Math.sin(player.facing); yawZ = Math.cos(player.facing); }
   }
-  let pitch = input.fps ? input.pitch : Math.max(input.pitch, FLIGHT.topdownPopPitch);
-  if (!airborne) pitch = Math.max(pitch, FLIGHT.groundPopPitch);
+  // Launch exactly where the player is aiming. In first-person that's their
+  // look pitch (including flat or downward for ground dashes and creative
+  // plays); top-down has no vertical aim, so it keeps a gentle default lift.
+  // Notably there's no longer a forced upward angle when launching from the
+  // ground — a ground pop used to fire ~50° skyward regardless of aim.
+  const pitch = input.fps ? input.pitch : Math.max(input.pitch, FLIGHT.topdownPopPitch);
 
-  const impulse = FLIGHT.boost * (1 + FLIGHT.boostRarityAdd * bubble.rarity);
+  const impulse = FLIGHT.boost * FLIGHT.boostRarityMult ** bubble.rarity;
   const v = player.flightVel;
   if (pitch > 0 && v.y < 0) v.y = 0;
   v.x += yawX * Math.cos(pitch) * impulse;
@@ -63,7 +67,7 @@ export function updateFlight(player, dt) {
 
   if (defPressed) {
     const bubble = bestAlive(p.petals.instances, 'bubble');
-    if (bubble) { popBubble(p, bubble, airborne); airborne = airborne || v.y > 0; }
+    if (bubble) { popBubble(p, bubble); airborne = airborne || v.y > 0; }
   }
 
   if (!airborne && v.y <= 0) {
