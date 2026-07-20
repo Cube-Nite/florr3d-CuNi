@@ -79,11 +79,46 @@
     .petalrow.secondary .slot .pname { font-size: 8px; }
     .slot .hotkey { position: absolute; top: 2px; right: 5px; font-size: 11px; color: rgba(0,0,0,0.45); }
 
-    /* inventory */
-    #invwrap { position: absolute; bottom: 14px; left: 14px; max-width: 300px; }
-    #invtitle { font-size: 14px; margin-bottom: 5px; }
-    #inventory { display: flex; flex-wrap: wrap; gap: 5px; }
-    .invtile { width: 48px; height: 48px; border-radius: 8px; border: 4px solid rgba(0,0,0,0.35);
+    /* bottom-left dock: a bottom-anchored stack of toggleable HUD windows.
+       Each ".dockmodule" collapses to a little icon and expands upward into a
+       panel. Add more modules (e.g. crafting) as siblings of #invModule and
+       they stack above/below it automatically. */
+    #leftdock { position: absolute; bottom: 14px; left: 14px; z-index: 12;
+                display: flex; flex-direction: column-reverse; align-items: flex-start; gap: 8px; }
+    .dockmodule { display: flex; flex-direction: column-reverse; align-items: flex-start; }
+
+    /* collapsed state: florr-style bundle icon with the keybind overlaid */
+    .dockicon { position: relative; width: 58px; height: 58px; padding: 0; cursor: pointer;
+                background: rgba(10,22,14,0.55); border: 3px solid rgba(0,0,0,0.3);
+                border-radius: 12px; display: flex; align-items: center; justify-content: center;
+                transition: transform 0.08s; }
+    .dockicon:hover { transform: scale(1.06); }
+    .dockicon:active { transform: scale(0.97); }
+    .dockicon-img { width: 40px; height: 40px; display: block; }
+    .dockkey { position: absolute; bottom: -4px; right: -4px; font-size: 12px; color: #fff;
+               background: rgba(0,0,0,0.65); border-radius: 5px; padding: 0 5px; line-height: 1.5; }
+    .dockmodule.open .dockicon { display: none; }
+
+    /* expanded state: an actual window that grows only as tall as it needs,
+       up to (almost) the full screen height, scrolling if it somehow exceeds */
+    .dockpanel { display: none; background: rgba(10,22,14,0.82);
+                 border: 3px solid rgba(0,0,0,0.3); border-radius: 12px; padding: 10px 12px;
+                 max-height: calc(100vh - 120px); overflow-y: auto; overflow-x: hidden; }
+    .dockmodule.open .dockpanel { display: block; }
+    .dockpanel-title { font-size: 15px; color: #fff; margin-bottom: 8px; cursor: pointer; }
+    .dockpanel-title::before { content: '▾'; opacity: 0.75; margin-right: 6px; }
+    .dockpanel-hint { font-size: 11px; color: #fff; opacity: 0.8; margin-top: 8px; }
+    .inv-empty { font-size: 12px; color: #fff; opacity: 0.75; padding: 6px 2px; white-space: nowrap; }
+
+    /* inventory grid: one row per petal type (A→Z, top→bottom), fixed columns
+       per rarity (low→high, left→right); --cols is set from JS to the highest
+       owned rarity so we never render a wall of empty high-rarity columns */
+    #inventory { display: flex; flex-direction: column; gap: 5px; }
+    .invrow { display: grid; grid-template-columns: 62px repeat(var(--cols, 1), 44px);
+              gap: 5px; align-items: center; }
+    .invrow-label { grid-column: 1; font-size: 11px; color: #fff; text-align: right;
+                    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .invtile { width: 44px; height: 44px; border-radius: 8px; border: 4px solid rgba(0,0,0,0.35);
                display: flex; flex-direction: column; align-items: center; justify-content: center;
                cursor: pointer; position: relative; overflow: hidden;
                transition: transform 0.08s; }
@@ -249,16 +284,32 @@
       Attack / Defend — left / right click or Space / Shift<br/>
       Swap petal — [1..5] &nbsp; Swap rows — [R]<br/>
       Rotation speed — [Q]/[E]<br/>
-      First person (WASD) — [F]
+      Inventory — [Z] &nbsp; First person (WASD) — [F]
     </div>
     <div id="loadout">
       <div class="petalrow primary" id="rowPrimary"></div>
       <div class="petalrow secondary" id="rowSecondary"></div>
     </div>
-    <div id="invwrap">
-      <div id="invtitle" class="stroke">Inventory</div>
-      <div id="inventory"></div>
-      <div id="invhint" class="stroke">Click a petal, then a slot to equip</div>
+    <div id="leftdock">
+      <!-- Inventory module. To add another (e.g. crafting), copy this block as
+           a sibling and wire its icon/keybind up the same way in ui.js/main.js. -->
+      <div class="dockmodule" id="invModule">
+        <div class="dockpanel">
+          <div class="dockpanel-title stroke" id="invCollapse">Inventory</div>
+          <div id="inventory"></div>
+          <div class="dockpanel-hint stroke">Click a petal, then a slot to equip</div>
+        </div>
+        <button class="dockicon" id="invIcon" type="button" title="Inventory (Z)">
+          <svg class="dockicon-img" viewBox="0 0 40 40" aria-hidden="true">
+            <rect x="12" y="7" width="16" height="5" rx="2.5" fill="#c99a56"
+                  stroke="#8f6a34" stroke-width="2" />
+            <path d="M15 11 L25 11 Q23 15 24.5 16.5 Q33.5 22.5 29.5 32 Q25.5 37.5 20 37.5
+                     Q14.5 37.5 10.5 32 Q6.5 22.5 15.5 16.5 Q17 15 15 11 Z"
+                  fill="#e7c78d" stroke="#8f6a34" stroke-width="2.5" stroke-linejoin="round" />
+          </svg>
+          <span class="dockkey stroke">Z</span>
+        </button>
+      </div>
     </div>
     <div id="bottomright">
       <div id="mutechat" class="stroke"></div>
