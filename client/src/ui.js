@@ -165,13 +165,13 @@ export class UI {
     for (const type of types) {
       const row = document.createElement('div');
       row.className = 'invrow';
-      const label = document.createElement('div');
-      label.className = 'invrow-label';
-      label.textContent = PETAL_TYPES[type].name;
-      row.appendChild(label);
       for (const [rarity, count] of byType.get(type)) {
         const tile = this.makeInvTile(`${type}:${rarity}`, type, rarity, count);
-        tile.style.gridColumn = String(rarity + 2); // +1 past the label, +1 for 1-based
+        // Pin to (row 1, rarity column). The explicit grid-row is essential:
+        // without it, tiles added out of rarity order get bumped onto extra
+        // rows by grid's sparse auto-placement (the "split across rows" bug).
+        tile.style.gridColumn = String(rarity + 1);
+        tile.style.gridRow = '1';
         row.appendChild(tile);
       }
       grid.appendChild(row);
