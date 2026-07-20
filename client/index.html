@@ -87,16 +87,16 @@
                 display: flex; flex-direction: column-reverse; align-items: flex-start; gap: 8px; }
     .dockmodule { display: flex; flex-direction: column-reverse; align-items: flex-start; }
 
-    /* collapsed state: florr-style bundle icon with the keybind overlaid */
+    /* collapsed state: a self-contained icon (its own backdrop/border/badge
+       baked in) is the whole button — no extra chrome behind it, which
+       would otherwise double up with the icon's own frame */
     .dockicon { position: relative; width: 58px; height: 58px; padding: 0; cursor: pointer;
-                background: rgba(10,22,14,0.55); border: 3px solid rgba(0,0,0,0.3);
-                border-radius: 12px; display: flex; align-items: center; justify-content: center;
+                background: transparent; border: none; border-radius: 12px;
+                display: flex; align-items: center; justify-content: center;
                 transition: transform 0.08s; }
     .dockicon:hover { transform: scale(1.06); }
     .dockicon:active { transform: scale(0.97); }
-    .dockicon-img { width: 40px; height: 40px; display: block; }
-    .dockkey { position: absolute; bottom: -4px; right: -4px; font-size: 12px; color: #fff;
-               background: rgba(0,0,0,0.65); border-radius: 5px; padding: 0 5px; line-height: 1.5; }
+    .dockicon-img { width: 100%; height: 100%; display: block; border-radius: 12px; }
     .dockmodule.open .dockicon { display: none; }
 
     /* expanded state: an actual window that grows only as tall as it needs,
@@ -314,25 +314,8 @@
           <div class="dockpanel-hint stroke">Click a petal, then a slot to equip</div>
         </div>
         <button class="dockicon" id="invIcon" type="button" title="Inventory (Z)">
-          <svg class="dockicon-img" viewBox="0 0 40 40" aria-hidden="true">
-            <!-- drawstring loot pouch, florr-style -->
-            <!-- sack body -->
-            <path d="M9.5 18 Q20 13 30.5 18 Q35 27 29.5 34 Q25 38 20 38 Q15 38 10.5 34 Q5 27 9.5 18 Z"
-                  fill="#f0d9a8" stroke="#8a6531" stroke-width="2.2" stroke-linejoin="round" />
-            <!-- soft highlight -->
-            <path d="M14 22 Q13 28 16 33" fill="none" stroke="#fff3d4" stroke-width="2"
-                  stroke-linecap="round" opacity="0.7" />
-            <!-- cinched drawstring band -->
-            <path d="M9.5 18 Q20 23 30.5 18 L29 21.5 Q20 26 11 21.5 Z"
-                  fill="#d3a457" stroke="#8a6531" stroke-width="2.2" stroke-linejoin="round" />
-            <!-- gathered neck ruffles -->
-            <path d="M14.5 18 Q15.5 13 17.5 18 M18.5 18 Q20 12 21.5 18 M22.5 18 Q24.5 13 25.5 18"
-                  fill="none" stroke="#8a6531" stroke-width="1.7" stroke-linecap="round" />
-            <!-- little loot sparkles -->
-            <path d="M32.5 10 l0.9 2 2 0.9 -2 0.9 -0.9 2 -0.9 -2 -2 -0.9 2 -0.9 z" fill="#fff3d4" />
-            <circle cx="8" cy="13" r="1.2" fill="#fff3d4" />
-          </svg>
-          <span class="dockkey stroke">Z</span>
+          <!-- src set from ui.js; the icon already has the "Z" badge baked in -->
+          <img class="dockicon-img" id="invIconImg" alt="Inventory" />
         </button>
       </div>
     </div>

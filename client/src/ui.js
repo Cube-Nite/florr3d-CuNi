@@ -12,6 +12,7 @@ import cornIcon from '../assets/corn.svg';
 import leafIcon from '../assets/leaf.svg';
 import wingIcon from '../assets/wing.svg';
 import bubbleIcon from '../assets/bubble.svg';
+import inventoryBundleIcon from '../assets/inventory_bundle.svg';
 
 function shade(hex, f = 0.72) {
   const n = parseInt(hex.slice(1), 16);
@@ -53,6 +54,7 @@ export class UI {
       inventory: document.getElementById('inventory'),
       invModule: document.getElementById('invModule'),
       invIcon: document.getElementById('invIcon'),
+      invIconImg: document.getElementById('invIconImg'),
       invCollapse: document.getElementById('invCollapse'),
       death: document.getElementById('death'),
       deathTimer: document.getElementById('deathtimer'),
@@ -68,6 +70,7 @@ export class UI {
       damage: this.el.tooltip.querySelector('.tt-damage'),
       heal: this.el.tooltip.querySelector('.tt-heal'),
     };
+    this.el.invIconImg.src = inventoryBundleIcon;
 
     // Inventory window open/closed, remembered across sessions. Icon expands
     // it, the panel title (or Z) collapses it back to the bundle icon.
