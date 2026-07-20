@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import { PITCH_LIMIT } from '../../shared/config.js';
+import { getSensitivity } from './settings.js';
 
 const MAX_MOVE_PX = 250;
+const BASE_SENSITIVITY = 0.0024;
 
 export class Input {
   constructor(canvas, camera) {
@@ -14,7 +16,6 @@ export class Input {
     this.handlers = {};
 
     this.look = { yaw: 0, pitch: 0 };
-    this.lookSensitivity = 0.0024;
     this.wantLock = false;
 
     this.raycaster = new THREE.Raycaster();
@@ -25,8 +26,9 @@ export class Input {
       if (document.pointerLockElement === canvas) {
         const dx = Math.max(-MAX_MOVE_PX, Math.min(MAX_MOVE_PX, e.movementX));
         const dy = Math.max(-MAX_MOVE_PX, Math.min(MAX_MOVE_PX, e.movementY));
-        this.look.yaw -= dx * this.lookSensitivity;
-        this.look.pitch -= dy * this.lookSensitivity;
+        const sens = BASE_SENSITIVITY * getSensitivity();
+        this.look.yaw -= dx * sens;
+        this.look.pitch -= dy * sens;
         this.look.pitch = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, this.look.pitch));
         return;
       }

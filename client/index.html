@@ -45,6 +45,33 @@
     #hpfill { background: linear-gradient(180deg, #8bee52, #63cd28); width: 100%; }
     #xpfill { background: linear-gradient(180deg, #ffe763, #efc73c); width: 0%; }
 
+    /* settings: gear button by the health bar, opening a small slider panel */
+    #settingsBtn { position: absolute; top: 14px; left: 292px; width: 40px; height: 40px;
+                   display: flex; align-items: center; justify-content: center; font-size: 22px;
+                   color: #fff; background: rgba(15,20,15,0.5); border-radius: 10px;
+                   cursor: pointer; transition: transform 0.08s; }
+    #settingsBtn:hover { transform: scale(1.08); }
+    #settingsBtn:active { transform: scale(0.96); }
+    #settingsPanel { position: absolute; top: 62px; left: 292px; width: 244px; z-index: 14;
+                     background: rgba(10,22,14,0.9); border: 3px solid rgba(0,0,0,0.3);
+                     border-radius: 12px; padding: 12px 14px;
+                     display: flex; flex-direction: column; gap: 14px; }
+    #settingsPanel.hidden { display: none; }
+    .settitle { font-size: 15px; color: #fff; }
+    .setrow { display: flex; flex-direction: column; gap: 8px; }
+    .setlabel { font-size: 13px; color: #fff; display: flex; justify-content: space-between;
+                align-items: baseline; }
+    .setval { font-size: 13px; color: #8bee52; font-weight: 700; }
+    .sethint { font-size: 11px; color: #fff; opacity: 0.7; line-height: 1.45; }
+    .setslider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px;
+                 border-radius: 999px; background: rgba(255,255,255,0.18); outline: none;
+                 cursor: pointer; }
+    .setslider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none;
+                 width: 18px; height: 18px; border-radius: 50%; background: #8bee52;
+                 border: 3px solid #57a32b; cursor: pointer; }
+    .setslider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%;
+                 background: #8bee52; border: 3px solid #57a32b; cursor: pointer; }
+
     /* controls help */
     #discord { position: absolute; top: 14px; right: 14px; font-size: 14px; color: #fff;
                background: #5865f2; padding: 6px 14px; border-radius: 999px;
@@ -242,6 +269,19 @@
         </div>
       </div>
       <div class="barwrap xp"><div class="bartrack"><div class="barfill" id="xpfill"></div></div></div>
+    </div>
+    <div id="settingsBtn" class="stroke" title="Settings">⚙</div>
+    <div id="settingsPanel" class="hidden">
+      <div class="settitle stroke">Settings</div>
+      <div class="setrow">
+        <div class="setlabel">Mouse Sensitivity<span id="sensVal" class="setval"></span></div>
+        <input type="range" id="sensSlider" class="setslider" min="0" max="1" step="0.001" />
+      </div>
+      <div class="setrow">
+        <div class="setlabel">Field of View<span id="fovVal" class="setval"></span></div>
+        <input type="range" id="fovSlider" class="setslider" min="0" max="1" step="0.001" />
+      </div>
+      <div class="sethint">Sliders snap to the default in the middle. Double-click to reset. FOV applies in first person.</div>
     </div>
     <a id="discord" class="stroke" href="https://discord.gg/pSkDVSqGkt" target="_blank" rel="noopener">Join the Discord</a>
     <div id="help" class="stroke">

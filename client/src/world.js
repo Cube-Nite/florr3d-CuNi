@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Lensflare, LensflareElement } from 'three/addons/objects/Lensflare.js';
 import { ARENA_HALF, TILE_SIZE, MAP_TILES } from '../../shared/config.js';
 import { damp } from './utils.js';
-import { getQuality } from './settings.js';
+import { getQuality, getFov } from './settings.js';
 import { makeTiles } from './tiles.js';
 import { makeWalls } from './walls.js';
 import { makeGrass } from './grass.js';
@@ -551,7 +551,7 @@ export function createWorld(container) {
   const camTarget = new THREE.Vector3();
   const FPS_EYE_HEIGHT = 1.2;
   const TOPDOWN_FOV = 55;
-  const FPS_FOV = 75;
+  // First-person FOV comes from the settings slider (getFov); top-down is fixed.
   const prevFocus = new THREE.Vector3();
   let havePrevFocus = false;
   let speedFov = 0;
@@ -569,7 +569,7 @@ export function createWorld(container) {
     const targetKick = look ? Math.min(18, Math.max(0, (speed - 14) * 0.7)) : 0;
     speedFov += (targetKick - speedFov) * damp(4, dt);
 
-    const fov = (look ? FPS_FOV : TOPDOWN_FOV) + speedFov;
+    const fov = (look ? getFov() : TOPDOWN_FOV) + speedFov;
     if (Math.abs(camera.fov - fov) > 0.01) {
       camera.fov = fov;
       camera.updateProjectionMatrix();
