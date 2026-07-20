@@ -12,7 +12,7 @@ import cornIcon from '../assets/corn.svg';
 import leafIcon from '../assets/leaf.svg';
 import wingIcon from '../assets/wing.svg';
 import bubbleIcon from '../assets/bubble.svg';
-import inventoryBundleIcon from '../assets/inventory_bundle.svg';
+import inventoryBundleIcon from '../assets/inventory_bundle.png';
 
 function shade(hex, f = 0.72) {
   const n = parseInt(hex.slice(1), 16);

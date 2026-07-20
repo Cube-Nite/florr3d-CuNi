@@ -87,16 +87,17 @@
                 display: flex; flex-direction: column-reverse; align-items: flex-start; gap: 8px; }
     .dockmodule { display: flex; flex-direction: column-reverse; align-items: flex-start; }
 
-    /* collapsed state: a self-contained icon (its own backdrop/border/badge
-       baked in) is the whole button — no extra chrome behind it, which
-       would otherwise double up with the icon's own frame */
+    /* collapsed state: a self-contained icon (its own backdrop/rounding/badge
+       baked into the image pixels) is the whole button — no extra chrome or
+       CSS rounding behind it, which would otherwise double up with the
+       icon's own frame and crop it oddly */
     .dockicon { position: relative; width: 58px; height: 58px; padding: 0; cursor: pointer;
-                background: transparent; border: none; border-radius: 12px;
+                background: transparent; border: none; border-radius: 0;
                 display: flex; align-items: center; justify-content: center;
                 transition: transform 0.08s; }
     .dockicon:hover { transform: scale(1.06); }
     .dockicon:active { transform: scale(0.97); }
-    .dockicon-img { width: 100%; height: 100%; display: block; border-radius: 12px; }
+    .dockicon-img { width: 100%; height: 100%; display: block; border-radius: 0; }
     .dockmodule.open .dockicon { display: none; }
 
     /* expanded state: an actual window that grows only as tall as it needs,
