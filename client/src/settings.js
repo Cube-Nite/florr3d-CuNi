@@ -9,10 +9,10 @@ export const SENS_DEFAULT = 1;
 export const SENS_MAX = 3;
 
 // First-person field of view in degrees. Centres on the game default (75),
-// can be narrowed a bit or widened up to a Minecraft-"Quake Pro"-ish 110.
+// can be narrowed a bit or widened up to 90.
 export const FOV_MIN = 60;
 export const FOV_DEFAULT = 75;
-export const FOV_MAX = 110;
+export const FOV_MAX = 90;
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
