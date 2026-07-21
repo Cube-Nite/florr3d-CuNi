@@ -27,7 +27,11 @@ const TICK_MS = 1000 / 20;
 const AUTOSAVE_MS = 60_000;
 const HEARTBEAT_MS = 30_000;
 const MAX_BUFFERED = 1_000_000;
-const MAX_CONNS_PER_IP = 2;
+// Kept low enough to blunt casual abuse from a single source, but high
+// enough that a household/office/dorm sharing one public IP (very common
+// with home NAT) isn't bounced to "no server found" just for having a
+// few people play from the same network at once.
+const MAX_CONNS_PER_IP = 8;
 const MAX_ACTIVE_SPECTATORS = 60;
 const SPECTATOR_IDLE_TIMEOUT_MS = 120_000;
 const MAX_SPECTATORS_TOTAL = 150;

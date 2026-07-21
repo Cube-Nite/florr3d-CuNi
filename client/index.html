@@ -45,13 +45,56 @@
     #hpfill { background: linear-gradient(180deg, #8bee52, #63cd28); width: 100%; }
     #xpfill { background: linear-gradient(180deg, #ffe763, #efc73c); width: 0%; }
 
+    /* settings: gear button in the very top-right corner, opening a panel */
+    #settingsBtn { position: absolute; top: 14px; right: 14px; width: 40px; height: 40px;
+                   display: flex; align-items: center; justify-content: center;
+                   background: rgba(15,20,15,0.5); border-radius: 10px;
+                   cursor: pointer; transition: transform 0.08s; z-index: 15; }
+    #settingsBtn:hover { transform: scale(1.08); }
+    #settingsBtn:active { transform: scale(0.96); }
+    #settingsBtn .gearicon { width: 24px; height: 24px; display: block; fill: #fff; }
+    #settingsPanel { position: absolute; top: 62px; right: 14px; width: 252px; z-index: 14;
+                     max-height: calc(100vh - 76px); overflow-y: auto;
+                     background: rgba(10,22,14,0.92); border: 3px solid rgba(0,0,0,0.3);
+                     border-radius: 12px; padding: 12px 14px;
+                     display: flex; flex-direction: column; gap: 14px; }
+    #settingsPanel.hidden { display: none; }
+    .settitle { font-size: 15px; color: #fff; }
+    .setrow { display: flex; flex-direction: column; gap: 8px; }
+    .setlabel { font-size: 13px; color: #fff; display: flex; justify-content: space-between;
+                align-items: baseline; }
+    .setval { font-size: 13px; color: #8bee52; font-weight: 700; }
+    .sethint { font-size: 11px; color: #fff; opacity: 0.7; line-height: 1.45; }
+    .setslider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px;
+                 border-radius: 999px; background: rgba(255,255,255,0.18); outline: none;
+                 cursor: pointer; }
+    .setslider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none;
+                 width: 18px; height: 18px; border-radius: 50%; background: #8bee52;
+                 border: 3px solid #57a32b; cursor: pointer; }
+    .setslider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%;
+                 background: #8bee52; border: 3px solid #57a32b; cursor: pointer; }
+    /* chat + quality toggles, relocated from the corner into the panel */
+    .setbtns { display: flex; flex-direction: column; gap: 8px; }
+    .setbtn { font-size: 13px; color: #fff; background: rgba(15,20,15,0.6); padding: 8px 12px;
+              border-radius: 8px; cursor: pointer; text-align: center; transition: transform 0.08s; }
+    .setbtn:hover { transform: scale(1.03); }
+    /* controls list mirrored inside the panel so it survives dismissal */
+    .setctitle { font-size: 13px; color: #fff; margin-bottom: 4px; }
+    #settingsControls { font-size: 12px; color: #fff; opacity: 0.85; line-height: 1.6; }
+
     /* controls help */
-    #discord { position: absolute; top: 14px; right: 14px; font-size: 14px; color: #fff;
+    #discord { position: absolute; top: 14px; right: 62px; font-size: 14px; color: #fff;
                background: #5865f2; padding: 6px 14px; border-radius: 999px;
                text-decoration: none; transition: transform 0.08s; }
     #discord:hover { transform: scale(1.06); }
-    #help { position: absolute; top: 52px; right: 14px; text-align: right; font-size: 13px;
+    #help { position: absolute; top: 62px; right: 14px; text-align: right; font-size: 13px;
             line-height: 1.55; opacity: 0.9; pointer-events: none; }
+    #help.hidden { display: none; }
+    #helpHead { margin-bottom: 3px; }
+    #helpClose { pointer-events: auto; cursor: pointer; display: inline-flex; align-items: center;
+                 justify-content: center; width: 20px; height: 20px; font-size: 12px; color: #fff;
+                 background: rgba(15,20,15,0.55); border-radius: 6px; transition: transform 0.08s; }
+    #helpClose:hover { background: rgba(15,20,15,0.85); transform: scale(1.1); }
 
     /* loadout */
     #loadout { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
@@ -79,11 +122,61 @@
     .petalrow.secondary .slot .pname { font-size: 8px; }
     .slot .hotkey { position: absolute; top: 2px; right: 5px; font-size: 11px; color: rgba(0,0,0,0.45); }
 
-    /* inventory */
-    #invwrap { position: absolute; bottom: 14px; left: 14px; max-width: 300px; }
-    #invtitle { font-size: 14px; margin-bottom: 5px; }
-    #inventory { display: flex; flex-wrap: wrap; gap: 5px; }
-    .invtile { width: 48px; height: 48px; border-radius: 8px; border: 4px solid rgba(0,0,0,0.35);
+    /* bottom-left dock: a bottom-anchored stack of toggleable HUD windows.
+       Each ".dockmodule" collapses to a little icon and expands upward into a
+       panel. Add more modules (e.g. crafting) as siblings of #invModule and
+       they stack above/below it automatically. */
+    #leftdock { position: absolute; bottom: 14px; left: 14px; z-index: 12;
+                display: flex; flex-direction: column-reverse; align-items: flex-start; gap: 8px; }
+    .dockmodule { display: flex; flex-direction: column-reverse; align-items: flex-start; }
+
+    /* collapsed state: a self-contained icon (its own backdrop/rounding/badge
+       baked into the image pixels) is the whole button — no extra chrome or
+       CSS rounding behind it, which would otherwise double up with the
+       icon's own frame and crop it oddly */
+    .dockicon { position: relative; width: 58px; height: 58px; padding: 0; cursor: pointer;
+                background: transparent; border: none; border-radius: 0;
+                display: flex; align-items: center; justify-content: center;
+                transition: transform 0.08s; }
+    .dockicon:hover { transform: scale(1.06); }
+    .dockicon:active { transform: scale(0.97); }
+    .dockicon-img { width: 100%; height: 100%; display: block; border-radius: 0; }
+    .dockmodule.open .dockicon { display: none; }
+
+    /* expanded state: an actual window that grows only as tall as it needs,
+       up to (almost) the full screen height, scrolling if it somehow exceeds */
+    /* panel is a flex column so the title + hint stay pinned and only the
+       petal grid in the middle scrolls */
+    .dockpanel { display: none; flex-direction: column; background: rgba(10,22,14,0.82);
+                 border: 3px solid rgba(0,0,0,0.3); border-radius: 12px; padding: 10px 12px;
+                 max-height: calc(100vh - 120px); }
+    .dockmodule.open .dockpanel { display: flex; }
+    .dockpanel-title { flex: none; font-size: 15px; color: #fff; margin-bottom: 8px;
+                       cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .dockpanel-title::before { content: '▾'; opacity: 0.75; }
+    .dockpanel-key { font-size: 11px; background: rgba(0,0,0,0.5); border-radius: 5px;
+                     padding: 1px 6px; }
+    .dockpanel-hint { flex: none; font-size: 11px; color: #fff; opacity: 0.85; margin-top: 8px;
+                      padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.13); }
+    .inv-empty { font-size: 12px; color: #fff; opacity: 0.75; padding: 6px 2px; white-space: nowrap; }
+
+    /* inventory grid: one row per petal type (A→Z, top→bottom), fixed columns
+       per rarity (low→high, left→right); --cols is set from JS to the highest
+       owned rarity so we never render a wall of empty high-rarity columns.
+       Only this middle region scrolls, with a themed custom scrollbar. */
+    #inventory { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
+                 display: flex; flex-direction: column; gap: 5px; padding-right: 4px;
+                 scrollbar-width: auto; scrollbar-color: rgba(150,200,165,0.45) rgba(255,255,255,0.06); }
+    #inventory::-webkit-scrollbar { width: 12px; }
+    #inventory::-webkit-scrollbar-track { background: rgba(255,255,255,0.06);
+                                          border-radius: 6px; margin: 2px 0; }
+    #inventory::-webkit-scrollbar-thumb { background: rgba(150,200,165,0.4); border-radius: 6px;
+                                          border: 3px solid transparent; background-clip: padding-box; }
+    #inventory::-webkit-scrollbar-thumb:hover { background: rgba(150,200,165,0.65);
+                                                background-clip: padding-box; }
+    .invrow { display: grid; grid-template-columns: repeat(var(--cols, 1), 44px);
+              gap: 5px; align-items: center; }
+    .invtile { width: 44px; height: 44px; border-radius: 8px; border: 4px solid rgba(0,0,0,0.35);
                display: flex; flex-direction: column; align-items: center; justify-content: center;
                cursor: pointer; position: relative; overflow: hidden;
                transition: transform 0.08s; }
@@ -134,13 +227,11 @@
                 touch-action: none; user-select: none; }
     .touchbtn svg { width: 28px; height: 28px; }
     .touchbtn.held { background: rgba(255, 255, 255, 0.35); }
-    #minimap { position: absolute; bottom: 48px; right: 14px; width: 140px; height: 140px;
+    /* minimap sits in the bottom-right corner now that the chat/quality
+       toggles have moved into the settings panel */
+    #minimap { position: absolute; bottom: 14px; right: 14px; width: 140px; height: 140px;
                border: 2px solid rgba(0, 0, 0, 0.35); border-radius: 6px; opacity: 0.92;
                pointer-events: none; image-rendering: pixelated; }
-    #bottomright { position: absolute; bottom: 14px; right: 14px; display: flex; gap: 8px; }
-    #mutechat, #quality { font-size: 14px; background: rgba(15,20,15,0.6); padding: 6px 14px;
-               border-radius: 999px; cursor: pointer; transition: transform 0.08s; }
-    #mutechat:hover, #quality:hover { transform: scale(1.06); }
 
     /* death overlay */
     #death { position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: none;
@@ -243,26 +334,60 @@
       </div>
       <div class="barwrap xp"><div class="bartrack"><div class="barfill" id="xpfill"></div></div></div>
     </div>
-    <a id="discord" class="stroke" href="https://discord.gg/pSkDVSqGkt" target="_blank" rel="noopener">Join the Discord</a>
+    <div id="settingsBtn" title="Settings">
+      <svg class="gearicon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.05.3-.07.62-.07.94 0 .32.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z" />
+      </svg>
+    </div>
+    <div id="settingsPanel" class="hidden">
+      <div class="settitle stroke">Settings</div>
+      <div class="setrow">
+        <div class="setlabel">Mouse Sensitivity<span id="sensVal" class="setval"></span></div>
+        <input type="range" id="sensSlider" class="setslider" min="0" max="1" step="0.001" />
+      </div>
+      <div class="setrow">
+        <div class="setlabel">Field of View<span id="fovVal" class="setval"></span></div>
+        <input type="range" id="fovSlider" class="setslider" min="0" max="1" step="0.001" />
+      </div>
+      <div class="sethint">Double-click a slider to reset. FOV applies in first person.</div>
+      <div class="setbtns">
+        <div id="mutechat" class="setbtn"></div>
+        <div id="quality" class="setbtn"></div>
+      </div>
+      <div>
+        <div class="setctitle">Controls</div>
+        <div id="settingsControls"></div>
+      </div>
+    </div>
+    <a id="discord" class="stroke" href="https://discord.gg/pfVMGFbhmM" target="_blank" rel="noopener">Join the Discord</a>
     <div id="help" class="stroke">
-      Move — mouse<br/>
-      Attack / Defend — left / right click or Space / Shift<br/>
-      Swap petal — [1..5] &nbsp; Swap rows — [R]<br/>
-      Rotation speed — [Q]/[E]<br/>
-      First person (WASD) — [F]
+      <div id="helpHead"><span id="helpClose" title="Hide controls (still in Settings)">✕</span></div>
+      <div id="helpList">
+        Move: mouse<br/>
+        Attack / Defend: left / right click or Space / Shift<br/>
+        Swap petal: [1..5] &nbsp; Swap rows: [R]<br/>
+        Rotation speed: [Q]/[E]<br/>
+        Inventory: [Z] &nbsp; First person (WASD): [F]
+      </div>
     </div>
     <div id="loadout">
       <div class="petalrow primary" id="rowPrimary"></div>
       <div class="petalrow secondary" id="rowSecondary"></div>
     </div>
-    <div id="invwrap">
-      <div id="invtitle" class="stroke">Inventory</div>
-      <div id="inventory"></div>
-      <div id="invhint" class="stroke">Click a petal, then a slot to equip</div>
-    </div>
-    <div id="bottomright">
-      <div id="mutechat" class="stroke"></div>
-      <div id="quality" class="stroke"></div>
+    <div id="leftdock">
+      <!-- Inventory module. To add another (e.g. crafting), copy this block as
+           a sibling and wire its icon/keybind up the same way in ui.js/main.js. -->
+      <div class="dockmodule" id="invModule">
+        <div class="dockpanel">
+          <div class="dockpanel-title stroke" id="invCollapse">Inventory<span class="dockpanel-key">Z</span></div>
+          <div id="inventory"></div>
+          <div class="dockpanel-hint stroke">Click a petal, then a slot to equip</div>
+        </div>
+        <button class="dockicon" id="invIcon" type="button" title="Inventory (Z)">
+          <!-- src set from ui.js; the icon already has the "Z" badge baked in -->
+          <img class="dockicon-img" id="invIconImg" alt="Inventory" />
+        </button>
+      </div>
     </div>
     <div id="tooltip">
       <div class="tt-head"><span class="tt-name"></span><span class="tt-reload"></span></div>

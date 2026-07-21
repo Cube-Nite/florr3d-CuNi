@@ -11,6 +11,7 @@ import { makeMinimap } from './minimap.js';
 import { setupMobileControls, joyWorldOffset } from './mobile.js';
 import { MOB_TYPES, CHAT_MAX_LEN, NAME_MAX_LEN } from '../../shared/config.js';
 import { initQualityToggle } from './settings.js';
+import { initSettingsMenu } from './settingsmenu.js';
 import { restrictToAscii } from './utils.js';
 import { showMergeModal } from './merge.js';
 
@@ -25,6 +26,7 @@ game.input = new Input(renderer.domElement, camera);
 game.ui = new UI(game);
 game.effects = new Effects(game);
 initQualityToggle();
+initSettingsMenu();
 preloadMobModels([...Object.keys(MOB_TYPES), 'hornetmissile']);
 
 Promise.all([
@@ -152,6 +154,7 @@ Promise.all([
     }
   };
   game.input.on('f', toggleCamera);
+  game.input.on('z', () => game.ui.toggleInventory());
   setupMobileControls(game, toggleCamera);
   game.input.on('v', () => {
     game.ui.toast(game.arrows.toggle() ? 'Player arrows on' : 'Player arrows off');

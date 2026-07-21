@@ -12,6 +12,7 @@ import cornIcon from '../assets/corn.svg';
 import leafIcon from '../assets/leaf.svg';
 import wingIcon from '../assets/wing.svg';
 import bubbleIcon from '../assets/bubble.svg';
+import inventoryBundleIcon from '../assets/inventory_bundle.png';
 
 function shade(hex, f = 0.72) {
   const n = parseInt(hex.slice(1), 16);
@@ -51,6 +52,10 @@ export class UI {
       rowPrimary: document.getElementById('rowPrimary'),
       rowSecondary: document.getElementById('rowSecondary'),
       inventory: document.getElementById('inventory'),
+      invModule: document.getElementById('invModule'),
+      invIcon: document.getElementById('invIcon'),
+      invIconImg: document.getElementById('invIconImg'),
+      invCollapse: document.getElementById('invCollapse'),
       death: document.getElementById('death'),
       deathTimer: document.getElementById('deathtimer'),
       toasts: document.getElementById('toasts'),
@@ -65,6 +70,29 @@ export class UI {
       damage: this.el.tooltip.querySelector('.tt-damage'),
       heal: this.el.tooltip.querySelector('.tt-heal'),
     };
+    this.el.invIconImg.src = inventoryBundleIcon;
+
+    // Inventory window open/closed, remembered across sessions. Icon expands
+    // it, the panel title (or Z) collapses it back to the bundle icon.
+    this.invOpen = true;
+    try { this.invOpen = localStorage.getItem('florr3d-inv-open') !== '0'; } catch {}
+    this.el.invIcon.addEventListener('click', () => this.setInventoryOpen(true));
+    this.el.invCollapse.addEventListener('click', () => this.setInventoryOpen(false));
+    this.applyInventoryOpen();
+  }
+
+  applyInventoryOpen() {
+    this.el.invModule.classList.toggle('open', this.invOpen);
+  }
+
+  setInventoryOpen(open) {
+    this.invOpen = open;
+    this.applyInventoryOpen();
+    try { localStorage.setItem('florr3d-inv-open', open ? '1' : '0'); } catch {}
+  }
+
+  toggleInventory() {
+    this.setInventoryOpen(!this.invOpen);
   }
 
   applyState(state) {
@@ -110,38 +138,75 @@ export class UI {
   }
 
   renderInventory() {
-    this.el.inventory.innerHTML = '';
+    const grid = this.el.inventory;
+    grid.innerHTML = '';
     if (!this.state) return;
-    const entries = [...this.state.inventory].sort(([a], [b]) => (a < b ? -1 : 1));
-    for (const [key, count] of entries) {
+
+    // Group owned petals by type, tracking the highest rarity anyone owns so
+    // the grid only spans that many rarity columns.
+    const byType = new Map();
+    let maxRarity = 0;
+    for (const [key, count] of this.state.inventory) {
+      if (!(count > 0)) continue;
       const [type, rarityStr] = key.split(':');
       const rarity = Number(rarityStr);
-      const def = PETAL_TYPES[type];
-      const icon = PETAL_ICONS[type];
-      const tile = document.createElement('div');
-      tile.className = 'invtile' + (this.selected === key ? ' selected' : '');
-      tile.style.background = RARITIES[rarity].color;
-      tile.style.borderColor = shade(RARITIES[rarity].color);
-      tile.innerHTML =
-        (icon
-          ? `<img class="picon" src="${icon}" alt="${def.name}" />`
-          : `<div class="dot" style="background:${def.color}"></div><div class="pname">${def.name}</div>`) +
-        `<div class="count">${count}</div>`;
-      tile.onclick = () => {
-        this.selected = this.selected === key ? null : key;
-        this.renderInventory();
-      };
-      tile.draggable = true;
-      tile.ondragstart = (e) => {
-        e.dataTransfer.setData('text/plain', key);
-        e.dataTransfer.effectAllowed = 'move';
-        tile.classList.add('dragging');
-      };
-      tile.ondragend = () => tile.classList.remove('dragging');
-      tile.onmouseenter = () => this.showTooltip(tile, type, rarity);
-      tile.onmouseleave = () => this.hideTooltip();
-      this.el.inventory.appendChild(tile);
+      if (!PETAL_TYPES[type] || !RARITIES[rarity]) continue;
+      if (!byType.has(type)) byType.set(type, new Map());
+      byType.get(type).set(rarity, count);
+      if (rarity > maxRarity) maxRarity = rarity;
     }
+
+    if (byType.size === 0) {
+      grid.innerHTML = '<div class="inv-empty">No petals yet — defeat mobs to collect some!</div>';
+      return;
+    }
+
+    // One row per type, sorted A→Z by display name; columns are rarity, low→high.
+    const types = [...byType.keys()].sort(
+      (a, b) => PETAL_TYPES[a].name.localeCompare(PETAL_TYPES[b].name));
+    grid.style.setProperty('--cols', maxRarity + 1);
+    for (const type of types) {
+      const row = document.createElement('div');
+      row.className = 'invrow';
+      for (const [rarity, count] of byType.get(type)) {
+        const tile = this.makeInvTile(`${type}:${rarity}`, type, rarity, count);
+        // Pin to (row 1, rarity column). The explicit grid-row is essential:
+        // without it, tiles added out of rarity order get bumped onto extra
+        // rows by grid's sparse auto-placement (the "split across rows" bug).
+        tile.style.gridColumn = String(rarity + 1);
+        tile.style.gridRow = '1';
+        row.appendChild(tile);
+      }
+      grid.appendChild(row);
+    }
+  }
+
+  makeInvTile(key, type, rarity, count) {
+    const def = PETAL_TYPES[type];
+    const icon = PETAL_ICONS[type];
+    const tile = document.createElement('div');
+    tile.className = 'invtile' + (this.selected === key ? ' selected' : '');
+    tile.style.background = RARITIES[rarity].color;
+    tile.style.borderColor = shade(RARITIES[rarity].color);
+    tile.innerHTML =
+      (icon
+        ? `<img class="picon" src="${icon}" alt="${def.name}" />`
+        : `<div class="dot" style="background:${def.color}"></div><div class="pname">${def.name}</div>`) +
+      `<div class="count">${count}</div>`;
+    tile.onclick = () => {
+      this.selected = this.selected === key ? null : key;
+      this.renderInventory();
+    };
+    tile.draggable = true;
+    tile.ondragstart = (e) => {
+      e.dataTransfer.setData('text/plain', key);
+      e.dataTransfer.effectAllowed = 'move';
+      tile.classList.add('dragging');
+    };
+    tile.ondragend = () => tile.classList.remove('dragging');
+    tile.onmouseenter = () => this.showTooltip(tile, type, rarity);
+    tile.onmouseleave = () => this.hideTooltip();
+    return tile;
   }
 
   renderLoadout() {
