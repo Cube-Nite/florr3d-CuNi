@@ -37,14 +37,33 @@ function setupSlider({ slider, readout, min, def, max, get, set, format }) {
   });
 }
 
+const HELP_HIDDEN_KEY = 'florr3d-help-hidden';
+
 export function initSettingsMenu() {
   const btn = document.getElementById('settingsBtn');
   const panel = document.getElementById('settingsPanel');
   btn.addEventListener('click', () => panel.classList.toggle('hidden'));
-  // Click anywhere outside closes it.
+  // Click anywhere outside closes it (the gear itself toggles, so ignore it).
   document.addEventListener('mousedown', (e) => {
     if (panel.classList.contains('hidden')) return;
-    if (!panel.contains(e.target) && e.target !== btn) panel.classList.add('hidden');
+    if (!panel.contains(e.target) && !btn.contains(e.target)) panel.classList.add('hidden');
+  });
+
+  // Mirror the corner controls list into the panel (single source of truth)
+  // so it's still reachable after the newcomer dismisses the floating one.
+  const help = document.getElementById('help');
+  const helpList = document.getElementById('helpList');
+  const controls = document.getElementById('settingsControls');
+  if (helpList && controls) controls.innerHTML = helpList.innerHTML;
+
+  // The floating controls list starts visible for newcomers; once dismissed,
+  // the choice is remembered so it stays hidden on future visits.
+  let helpHidden = false;
+  try { helpHidden = localStorage.getItem(HELP_HIDDEN_KEY) === '1'; } catch {}
+  if (helpHidden) help.classList.add('hidden');
+  document.getElementById('helpClose').addEventListener('click', () => {
+    help.classList.add('hidden');
+    try { localStorage.setItem(HELP_HIDDEN_KEY, '1'); } catch {}
   });
 
   setupSlider({
