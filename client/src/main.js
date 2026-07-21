@@ -154,6 +154,7 @@ Promise.all([
     }
   };
   game.input.on('f', toggleCamera);
+  game.input.on('z', () => game.ui.toggleInventory());
   setupMobileControls(game, toggleCamera);
   game.input.on('v', () => {
     game.ui.toast(game.arrows.toggle() ? 'Player arrows on' : 'Player arrows off');
